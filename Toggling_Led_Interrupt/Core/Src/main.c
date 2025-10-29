@@ -54,7 +54,26 @@ static void MX_GPIO_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+uint8_t flag=0;
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	    static uint32_t last = 0;
+	    uint32_t now = HAL_GetTick();
 
+	    if (GPIO_Pin == GPIO_PIN_0)
+	    {
+	        if (now - last < 50){
+	        	return; // ignore bounce within 50 ms
+	        }
+	        last = now;
+
+	        if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET){
+	            flag = 1;  // pressed
+	        }
+	        else{
+	            flag = 0;  // released
+	        }
+	    }
+	}
 /* USER CODE END 0 */
 
 /**
@@ -87,7 +106,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
-  uint8_t button_val;
+
   HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,1);
 
   /* USER CODE END 2 */
@@ -96,28 +115,18 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+	  if(flag){
+		  HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13); //LED TOGGLE
+		  HAL_Delay(500);
+	  }
+	  else{
+		  HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,1); //LED OFF
+	  }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	button_val=HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_0);
-	if(button_val==0){
-		//LED ON
-			HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,0);
-			HAL_Delay(500);
-		//LED OFF
-			HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,1);
-			HAL_Delay(500);
-//			HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
-//			HAL_Delay(500);
-	}
-
-//	else{
-//		HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,1);
-//
-//	}
-
-
-
   }
   /* USER CODE END 3 */
 }
@@ -196,9 +205,13 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : PA0 */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
