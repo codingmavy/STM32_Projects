@@ -107,8 +107,15 @@ int main(void)
 		//LED OFF
 			HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,1);
 			HAL_Delay(500);
-
+//			HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
+//			HAL_Delay(500);
 	}
+
+//	else{
+//		HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,1);
+//
+//	}
+
 
 
   }
